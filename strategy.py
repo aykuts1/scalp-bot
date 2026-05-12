@@ -111,12 +111,6 @@ def evaluate_symbol(
                 f"(fiyat {last_close:.6f} <= EMA {last_ema30:.6f})"
             )
             return result
-        if last_close <= last_ema2h:
-            result.rejection_reason = (
-                f"2H EMA200 altında "
-                f"(fiyat {last_close:.6f} <= EMA {last_ema2h:.6f})"
-            )
-            return result
         if atr_r < config.ATR_RATIO_MIN:
             result.rejection_reason = (
                 f"ATR oranı düşük ({atr_r:.2f} < {config.ATR_RATIO_MIN})"
@@ -136,12 +130,6 @@ def evaluate_symbol(
             result.rejection_reason = (
                 f"30dk EMA200 üstünde "
                 f"(fiyat {last_close:.6f} >= EMA {last_ema30:.6f})"
-            )
-            return result
-        if last_close >= last_ema2h:
-            result.rejection_reason = (
-                f"2H EMA200 üstünde "
-                f"(fiyat {last_close:.6f} >= EMA {last_ema2h:.6f})"
             )
             return result
         if atr_r < config.ATR_RATIO_MIN:
