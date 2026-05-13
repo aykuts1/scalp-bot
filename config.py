@@ -48,7 +48,7 @@ ATR_LOOKBACK: int = 100         # ATR oranı için ortalama alınacak mum sayıs
 ATR_RATIO_MIN: float = 0.7      # Minimum ATR oranı
 
 # Trend filtresi (48 mum önceki fiyat)
-TREND_LOOKBACK_BARS: int = 48           # 48 × 30dk = 24 saat öncesi
+TREND_LOOKBACK_BARS: int = 24           # 48 × 30dk = 24 saat öncesi
 TREND_ATR_DISTANCE: float = 0.5         # Fiyat 48 mum öncesinden en az 0.5 ATR uzakta olmalı
 
 # Chandelier Exit
