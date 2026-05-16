@@ -49,12 +49,15 @@ def send_bot_start(balance: float, stake: float, leverage: int, symbols: List[st
 
 
 def send_scan_summary(scanned: int, signals: List[str], active_count: int, max_pos: int,
-                      crossover_count: int = 0, filtered_count: int = 0) -> None:
+                      crossover_count: int = 0, filtered_count: int = 0,
+                      filtered_symbols: List[str] = None) -> None:
     free_slots = max_pos - active_count
     sig_text = ", ".join(signals) if signals else "—"
+    filtered_text = ", ".join(filtered_symbols) if filtered_symbols else "—"
     msg = (
         f"📡 <b>5 DK TARAMA</b>\n"
         f"Taranan: {scanned} | Crossover: {crossover_count} | Kanal Filtresinde Takılan: {filtered_count}\n"
+        f"Filtrede Takılanlar: {filtered_text}\n"
         f"Sinyal: {sig_text}\n"
         f"Açık İşlem: {active_count}/{max_pos} (Boş slot: {free_slots})"
     )
