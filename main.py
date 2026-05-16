@@ -265,6 +265,7 @@ def entry_scan(client: BybitClient, pm: PositionManager) -> None:
     scanned = 0
     crossover_count = 0
     filtered_count = 0  # crossovers that failed the channel-width filter
+    filtered_symbols: List[str] = []
 
     for symbol in config.SYMBOLS:
         try:
@@ -313,10 +314,12 @@ def entry_scan(client: BybitClient, pm: PositionManager) -> None:
                 if long_cross or short_cross:
                     had_crossover = True
                     crossover_count += 1
+                    direction = "L" if long_cross else "S"
                     if cw[i] is not None and cw_avg[i] is not None and cw[i] > cw_avg[i]:
                         passed_filter = True
                     else:
                         filtered_count += 1
+                        filtered_symbols.append(f"{symbol}({direction})")
 
             # Check slot capacity (bot-managed + external both count)
             total_active = pm.count() + len(EXTERNAL_POSITIONS)
@@ -340,6 +343,7 @@ def entry_scan(client: BybitClient, pm: PositionManager) -> None:
     tg.send_scan_summary(
         scanned, signals_found, total_active, config.MAX_POSITIONS,
         crossover_count=crossover_count, filtered_count=filtered_count,
+        filtered_symbols=filtered_symbols,
     )
 
 
