@@ -28,7 +28,7 @@ TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
 ```
 
-## Calistirma
+## Calistirma 
 
 ```bash
 pip install -r requirements.txt
