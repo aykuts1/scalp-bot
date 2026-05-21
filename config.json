@@ -13,7 +13,7 @@
     "EMA_PERIOD":       100,
     "ATR_PERIOD":       14,
     "BAND_MULTIPLIER":  3,
-    "BUFFER_MULTIPLIER": 0.4,
+    "BUFFER_MULTIPLIER": 0.3,
     "_aciklama": "EMA_PERIOD: orta cizgi | ATR_PERIOD: ATR periyodu | BAND_MULTIPLIER: disbant = EMA +/- BAND*ATR | BUFFER_MULTIPLIER: ic/dis tampon = disbant +/- BUFFER*ATR"
   },
 
