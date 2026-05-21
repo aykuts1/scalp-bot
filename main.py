@@ -19,6 +19,7 @@ main.py - ATR BANDS TREND bot orkestratoru.
                    Gunluk: saat config'deki gunluk saat, dakika == 0
 """
 
+import logging
 import os
 import signal
 import sys
@@ -27,6 +28,13 @@ import time
 import traceback
 from datetime import datetime
 from typing import Dict, Optional
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%d.%m.%Y %H:%M:%S",
+)
+log = logging.getLogger("bot")
 
 from bands import compute_bands, sort_klines_chronological
 from bybit import BybitClient
@@ -121,8 +129,10 @@ class Bot:
 
         # 3. Telegram bildirimi
         self.notifier.bot_started(balance, self.stake_per_trade, self.cfg)
+        log.info(f"BOT BASLATILDI | bakiye={balance:.2f} USDT | stake={self.stake_per_trade:.2f} USDT | {len(self.cfg.coins)} coin tarama")
 
     def shutdown(self, reason: str = "Manuel kapatma") -> None:
+        log.info(f"BOT DURDURULUYOR | {reason}")
         try:
             self.notifier.bot_stopped(reason)
         except Exception:
@@ -191,21 +201,28 @@ class Bot:
         if action == FLAG_OPEN_LONG:
             self.state.set_flag(symbol, "LONG")
             self.notifier.flag_opened(symbol, "LONG", price)
+            log.info(f"FLAG ACILDI | {symbol} LONG | fiyat={price} ic_tampon={bands.ust_ic_tampon:.6f}")
         elif action == FLAG_OPEN_SHORT:
             self.state.set_flag(symbol, "SHORT")
             self.notifier.flag_opened(symbol, "SHORT", price)
+            log.info(f"FLAG ACILDI | {symbol} SHORT | fiyat={price} ic_tampon={bands.alt_ic_tampon:.6f}")
         elif action == FLAG_CLEAR_LONG:
             self.state.clear_flag(symbol)
             self.notifier.flag_deleted(symbol, "LONG", price)
+            log.info(f"FLAG SILINDI | {symbol} LONG | fiyat={price} ic_tampon={bands.ust_ic_tampon:.6f}")
         elif action == FLAG_CLEAR_SHORT:
             self.state.clear_flag(symbol)
             self.notifier.flag_deleted(symbol, "SHORT", price)
+            log.info(f"FLAG SILINDI | {symbol} SHORT | fiyat={price} ic_tampon={bands.alt_ic_tampon:.6f}")
 
         # 4. Giris sinyali tespiti
         current_flag = self.state.get_flag(symbol)   # action sonrasi yenile
         signal_ = detect_entry(price, bands, current_flag)
         if signal_ is None:
             return
+
+        disbant_val = bands.ust_disbant if signal_.side == "LONG" else bands.alt_disbant
+        log.info(f"GIRIS SINYALI | {symbol} {signal_.side} | fiyat={price} disbant={disbant_val:.6f}")
 
         # 5. Slot kontrolu
         if self.state.total_slots_used() >= self.cfg.max_open_trades:
@@ -214,13 +231,16 @@ class Bot:
                 self.state.total_slots_used(),
                 self.cfg.max_open_trades,
             )
+            log.info(f"SLOT DOLU | {symbol} {signal_.side} | {self.state.total_slots_used()}/{self.cfg.max_open_trades}")
             return
 
         # 6. Coinde zaten acik islem var mi
         if self.state.has_open_trade(symbol):
+            log.info(f"ACIK ISLEM VAR | {symbol} atlandi")
             return
 
         # 7. Islemi ac
+        log.info(f"ISLEM ACILIYOR | {symbol} {signal_.side} | fiyat={price}")
         self._open_trade(symbol, signal_.side, signal_.bands, price)
 
     # ----------------------------------------------------------------------
@@ -266,6 +286,7 @@ class Bot:
 
         if not result.filled:
             self.notifier.entry_order_failed(symbol, side, result.attempts)
+            log.warning(f"GIRIS EMRI DOLMADI | {symbol} {side} | {result.attempts} deneme")
             return
 
         entry_price = result.avg_price
@@ -306,6 +327,7 @@ class Bot:
             entry_price * filled_qty,
             float(sl_price_str),
         )
+        log.info(f"ISLEM ACILDI | {symbol} {side} | giris={entry_price} qty={filled_qty} sl={sl_price_str}")
 
     # ======================================================================
     # CIKIS THREAD
@@ -379,6 +401,7 @@ class Bot:
                 pos.profit_usdt(price),
                 pos.profit_pct_leveraged(price),
             )
+            log.info(f"SEVIYE GECISI | {pos.symbol} {pos.side} | {LEVEL_LABELS[new_level]} | fiyat={price}")
 
         # 4. Cikis kontrolu
         exit_type = check_exit(
@@ -389,6 +412,8 @@ class Bot:
 
         if exit_type is None:
             return
+
+        log.info(f"CIKIS TETIGI | {pos.symbol} {pos.side} | {exit_type} | fiyat={price}")
 
         # 5. Pozisyonu kapat
         self._close_position(pos, exit_type)
@@ -446,6 +471,8 @@ class Bot:
             exit_type, pnl_usdt, pnl_pct, atr_profit,
             market_fallback=result.market_fallback,
         )
+        market_tag = " (market fallback)" if result.market_fallback else ""
+        log.info(f"ISLEM KAPANDI | {pos.symbol} {pos.side} | {exit_type}{market_tag} | giris={pos.entry_price} cikis={exit_price} pnl={pnl_usdt:.2f} USDT")
 
     def _handle_stoploss_detected(self, pos: Position) -> None:
         """Bot kaydinda var ama Bybit'te yok -> borsa SL'yi tetiklemis."""
@@ -471,6 +498,7 @@ class Bot:
             pos.symbol, pos.side, pos.entry_price, exit_price,
             pnl_usdt, pnl_pct,
         )
+        log.warning(f"STOPLOSS TESPIT | {pos.symbol} {pos.side} | giris={pos.entry_price} sl={exit_price} pnl={pnl_usdt:.2f} USDT")
 
     # ======================================================================
     # RAPOR THREAD
@@ -535,6 +563,7 @@ class Bot:
             max_slots=self.cfg.max_open_trades,
         )
         self.notifier.report(text)
+        log.info("RAPOR | 15 dakikalik gonderildi")
 
     def _send_hourly(self) -> None:
         cutoff = time.time() - 3600
@@ -546,6 +575,7 @@ class Bot:
             max_slots=self.cfg.max_open_trades,
         )
         self.notifier.report(text)
+        log.info("RAPOR | saatlik gonderildi")
 
     def _send_8h(self) -> None:
         cutoff = time.time() - 8 * 3600
@@ -557,6 +587,7 @@ class Bot:
             max_slots=self.cfg.max_open_trades,
         )
         self.notifier.report(text)
+        log.info("RAPOR | 8 saatlik gonderildi")
 
     def _send_daily(self) -> None:
         cutoff = time.time() - 24 * 3600
@@ -568,6 +599,7 @@ class Bot:
             max_slots=self.cfg.max_open_trades,
         )
         self.notifier.report(text)
+        log.info("RAPOR | gunluk gonderildi")
 
     # ----------------------------------------------------------------------
     # Yardimcilar
