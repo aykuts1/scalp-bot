@@ -4,7 +4,7 @@
   "genel": {
     "STAKE_PERCENT":   10,
     "MAX_OPEN_TRADES": 10,
-    "LEVERAGE":        40,
+    "LEVERAGE":        20,
     "SL_PERCENT":      1,
     "_aciklama": "STAKE_PERCENT: bakiyenin yuzde kaci stake | MAX_OPEN_TRADES: ayni anda max acik islem | LEVERAGE: kaldirac | SL_PERCENT: borsa stop-loss yuzdesi"
   },
