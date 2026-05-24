@@ -1,0 +1,70 @@
+{
+  "band": {
+    "_aciklama": "Bant cizgilerinin hesaplanma ayarlari",
+    "ema_period": 100,
+    "atr_period": 100,
+    "timeframe": "15m",
+    "red_outer_multiplier": 2.0,
+    "blue_outer_multiplier": 1.9,
+    "outer_buffer_multiplier": 0.5,
+    "inner_buffer_multiplier": 0.5,
+    "level1_multiplier": 1.0,
+    "level2_multiplier": 2.0,
+    "chandelier_multiplier": 1.0
+  },
+
+  "coins": {
+    "_aciklama": "Taranacak coinler — list'e ekle/cikar, count'u guncelle",
+    "count": 10,
+    "list": [
+      "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT",
+      "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "LINKUSDT"
+    ]
+  },
+
+  "flag": {
+    "_aciklama": "Flag acilma/silinme mantigi ayarlari",
+    "price_memory_seconds": 1800,
+    "crossover_lookback_count": 2
+  },
+
+  "slot": {
+    "_aciklama": "Ayni anda acik olabilecek maksimum islem sayisi",
+    "max_open_positions": 10
+  },
+
+  "order": {
+    "_aciklama": "Emir ve kaldirac ayarlari",
+    "type": "market",
+    "sl_percent": 1.0,
+    "leverage": 20
+  },
+
+  "account": {
+    "_aciklama": "Bot baslarken bakiyenin yuzde kaci stake olarak kullanilacak",
+    "stake_percent": 10.0
+  },
+
+  "commission": {
+    "_aciklama": "Giris + cikis toplam komisyon orani — Bybit icin 0.001 yani %0.1",
+    "rate": 0.001
+  },
+
+  "scan": {
+    "_aciklama": "Her thread kac saniyede bir tarama yapacak",
+    "interval_seconds": 5
+  },
+
+  "report": {
+    "_aciklama": "Telegram rapor sikliklari",
+    "short_interval_minutes": 10,
+    "medium_interval_hours": 1,
+    "shift_interval_hours": 8,
+    "daily_interval_hours": 24
+  },
+
+  "env": {
+    "_aciklama": "testnet true yapilirsa gercek islem acilmaz, test ortaminda calisir",
+    "testnet": false
+  }
+}
