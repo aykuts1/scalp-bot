@@ -328,5 +328,34 @@ def msg_external_close(pos: dict, exit_data: dict, reason: str, slot_used: int, 
 ━━━━━━━━━━━━━━━━━━━━"""
 
 
+def msg_direction_changed(old_pos: dict, new_color: str, new_side: str, close_data: dict, slot_used: int, slot_max: int) -> str:
+    duration = (close_data["exit_time"] - old_pos["entry_time"]).total_seconds()
+    volume = old_pos["volume"]
+    atr = old_pos["atr_at_entry"]
+    if old_pos["side"] == "long":
+        price_diff = close_data["exit_price"] - old_pos["entry_price"]
+    else:
+        price_diff = old_pos["entry_price"] - close_data["exit_price"]
+    return f"""🔄 YÖN DEĞİŞTİRİLDİ
+━━━━━━━━━━━━━━━━━━━━
+🕐 Zaman: {fmt_time(close_data['exit_time'])}
+📌 Coin: {old_pos['coin']}
+
+❌ KAPANAN İŞLEM
+├ Yön: {fmt_color_side(old_pos['color'], old_pos['side'])}
+├ Giriş: {old_pos['entry_price']:.6f} USDT
+├ Çıkış: {close_data['exit_price']:.6f} USDT
+├ Süre: {fmt_duration(duration)}
+├ Brüt K/Z: {fmt_pnl(close_data['gross_pnl'], volume, price_diff, atr)}
+├ Komisyon: -{close_data['commission']:.2f} USDT
+└ Net K/Z: {fmt_pnl(close_data['net_pnl'], volume, price_diff, atr)}
+
+✅ YENİ İŞLEM AÇILIYOR
+└ Yön: {fmt_color_side(new_color, new_side)}
+
+🎰 SLOT: {slot_used}/{slot_max}
+━━━━━━━━━━━━━━━━━━━━"""
+
+
 # Singleton
 notifier = TelegramNotifier()
