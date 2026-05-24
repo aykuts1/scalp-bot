@@ -15,10 +15,18 @@
 
   "coins": {
     "_aciklama": "Taranacak coinler — list'e ekle/cikar, count'u guncelle",
-    "count": 10,
+    "count": 50,
     "list": [
-      "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT",
-      "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "MATICUSDT", "LINKUSDT"
+      "BTCUSDT",      "ETHUSDT",       "HYPEUSDT",      "SOLUSDT",      "NEARUSDT",
+      "ZECUSDT",      "XRPUSDT",       "DOGEUSDT",      "SUIUSDT",      "TONUSDT",
+      "1000PEPEUSDT", "ADAUSDT",       "FARTCOINUSDT",  "AVAXUSDT",     "DOTUSDT",
+      "BNBUSDT",      "AAVEUSDT",      "LTCUSDT",       "ARBUSDT",      "TIAUSDT",
+      "PUMPFUNUSDT",  "OPUSDT",        "APTUSDT",       "TRUMPUSDT",    "XMRUSDT",
+      "XPLUSDT",      "HBARUSDT",      "UNIUSDT",       "ICPUSDT",      "XLMUSDT",
+      "FILUSDT",      "CHZUSDT",       "ATOMUSDT",      "WLFIUSDT",     "TRXUSDT",
+      "POLUSDT",      "ALGOUSDT",      "ETCUSDT",       "FOGOUSDT",     "AXSUSDT",
+      "XTZUSDT",      "QNTUSDT",       "SANDUSDT",      "STXUSDT",      "VETUSDT",
+      "IMXUSDT",      "LINEAUSDT",     "NEOUSDT",       "MANAUSDT",     "FLOWUSDT"
     ]
   },
 
