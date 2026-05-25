@@ -55,7 +55,7 @@ class FetcherThread(threading.Thread):
                     klines = self.bybit.get_klines(coin, self.timeframe, limit=200)
                     state.set_cached_data(coin, klines, price)
                     # Kline istekleri arasinda bekleme — rate limit asimini onler
-                    time.sleep(1.2)
+                    time.sleep(2.0)
                 else:
                     # Mevcut kline'i koru, sadece fiyati guncelle
                     existing_klines = state.get_cached_klines(coin)
