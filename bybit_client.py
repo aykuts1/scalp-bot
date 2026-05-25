@@ -5,6 +5,7 @@ Bybit V5 API katmani. Veri cekme, emir gonderme, pozisyon sorgulama.
 
 import os
 import time
+import requests
 from typing import List, Optional
 from pybit.unified_trading import HTTP
 
@@ -32,6 +33,7 @@ class BybitClient:
         Belirtilen timeframe icin mumler.
         interval: "1", "5", "15", "30", "60", "120", "240", "D"
         Donus: en eskiden en yeniye sirali liste
+        Not: Direkt requests kullaniyoruz, pybit'in icinden gecen ek istekleri atlatmak icin.
         """
         interval_map = {
             "1m": "1", "5m": "5", "15m": "15", "30m": "30",
@@ -39,16 +41,21 @@ class BybitClient:
         }
         bybit_interval = interval_map.get(interval, interval)
 
-        resp = self.client.get_kline(
-            category=self.category,
-            symbol=symbol,
-            interval=bybit_interval,
-            limit=limit,
-        )
-        if resp.get("retCode") != 0:
-            raise RuntimeError(f"Kline fetch failed for {symbol}: {resp.get('retMsg')}")
+        url = "https://api.bybit.com/v5/market/kline"
+        params = {
+            "category": self.category,
+            "symbol": symbol,
+            "interval": bybit_interval,
+            "limit": limit,
+        }
+        resp = requests.get(url, params=params, timeout=10)
+        if resp.status_code != 200:
+            raise RuntimeError(f"Kline HTTP error for {symbol}: {resp.status_code}")
+        data = resp.json()
+        if data.get("retCode") != 0:
+            raise RuntimeError(f"Kline fetch failed for {symbol}: {data.get('retMsg')}")
 
-        klines = resp["result"]["list"]
+        klines = data["result"]["list"]
         # Bybit en yeniden eskiye verir, biz ters cevirelim
         klines = list(reversed(klines))
         # Format: [timestamp, open, high, low, close, volume, turnover]
@@ -65,11 +72,16 @@ class BybitClient:
         ]
 
     def get_price(self, symbol: str) -> float:
-        """Son fiyat (ticker)."""
-        resp = self.client.get_tickers(category=self.category, symbol=symbol)
-        if resp.get("retCode") != 0:
-            raise RuntimeError(f"Price fetch failed for {symbol}: {resp.get('retMsg')}")
-        return float(resp["result"]["list"][0]["lastPrice"])
+        """Son fiyat (ticker). Direkt requests."""
+        url = "https://api.bybit.com/v5/market/tickers"
+        params = {"category": self.category, "symbol": symbol}
+        resp = requests.get(url, params=params, timeout=10)
+        if resp.status_code != 200:
+            raise RuntimeError(f"Price HTTP error for {symbol}: {resp.status_code}")
+        data = resp.json()
+        if data.get("retCode") != 0:
+            raise RuntimeError(f"Price fetch failed for {symbol}: {data.get('retMsg')}")
+        return float(data["result"]["list"][0]["lastPrice"])
 
     # ──────────────────────────────────────────
     # HESAP
