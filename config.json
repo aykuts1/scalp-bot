@@ -13,20 +13,14 @@
     "chandelier_multiplier": 1.0
   },
 
-  "coins": {
+ "coins": {
     "_aciklama": "Taranacak coinler — list'e ekle/cikar, count'u guncelle",
-    "count": 50,
+    "count": 20,
     "list": [
-      "BTCUSDT",      "ETHUSDT",       "HYPEUSDT",      "SOLUSDT",      "NEARUSDT",
-      "ZECUSDT",      "XRPUSDT",       "DOGEUSDT",      "SUIUSDT",      "TONUSDT",
-      "1000PEPEUSDT", "ADAUSDT",       "FARTCOINUSDT",  "AVAXUSDT",     "DOTUSDT",
-      "BNBUSDT",      "AAVEUSDT",      "LTCUSDT",       "ARBUSDT",      "TIAUSDT",
-      "PUMPFUNUSDT",  "OPUSDT",        "APTUSDT",       "TRUMPUSDT",    "XMRUSDT",
-      "XPLUSDT",      "HBARUSDT",      "UNIUSDT",       "ICPUSDT",      "XLMUSDT",
-      "FILUSDT",      "CHZUSDT",       "ATOMUSDT",      "WLFIUSDT",     "TRXUSDT",
-      "POLUSDT",      "ALGOUSDT",      "ETCUSDT",       "FOGOUSDT",     "AXSUSDT",
-      "XTZUSDT",      "QNTUSDT",       "SANDUSDT",      "STXUSDT",      "VETUSDT",
-      "IMXUSDT",      "LINEAUSDT",     "NEOUSDT",       "MANAUSDT",     "FLOWUSDT"
+      "BNBUSDT",      "SOLUSDT",      "ADAUSDT",      "XRPUSDT",      "TRXUSDT",
+      "TRUMPUSDT",    "AVAXUSDT",     "DOGEUSDT",     "DOTUSDT",      "LINKUSDT",
+      "NEARUSDT",     "ATOMUSDT",     "XLMUSDT",      "UNIUSDT",      "AAVEUSDT",
+      "APTUSDT",      "SUIUSDT",      "1000PEPEUSDT", "OPUSDT",       "TONUSDT"
     ]
   },
 
@@ -38,19 +32,19 @@
 
   "slot": {
     "_aciklama": "Ayni anda acik olabilecek maksimum islem sayisi",
-    "max_open_positions": 10
+    "max_open_positions": 20
   },
 
   "order": {
     "_aciklama": "Emir ve kaldirac ayarlari",
     "type": "market",
     "sl_percent": 1.0,
-    "leverage": 20
+    "leverage": 30
   },
 
   "account": {
     "_aciklama": "Bot baslarken bakiyenin yuzde kaci stake olarak kullanilacak",
-    "stake_percent": 10.0
+    "stake_percent": 5.0
   },
 
   "commission": {
