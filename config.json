@@ -1,0 +1,32 @@
+{
+    "symbols": [
+        "SOLUSDT",
+        "DOGEUSDT",
+        "APTUSDT",
+        "AVAXUSDT",
+        "SUIUSDT",
+        "NEARUSDT",
+        "TRXUSDT",
+        "XRPUSDT",
+        "ADAUSDT",
+        "OPUSDT",
+        "DOTUSDT",
+        "TRUMPUSDT",
+        "AAVEUSDT",
+        "ATOMUSDT",
+        "INJUSDT",
+        "TONUSDT"
+    ],
+    "leverage": 50,
+    "stake_pct": 2.0,
+    "hard_sl_pct": 2.0,
+    "stake_update_interval_hours": 12,
+    "max_lose_pct": 2.0,
+    "risk_reward": 3,
+    "donchian_period": 50,
+    "ema_period": 800,
+    "timeframe": "15",
+    "candle_count": 900,
+    "price_update_interval_sec": 5,
+    "candle_fetch_delay_sec": 1
+}
