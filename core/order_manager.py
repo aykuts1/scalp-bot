@@ -80,6 +80,7 @@ class OrderManager:
                 if any(k in msg for k in [
                     "insufficient", "balance", "margin",
                     "max position", "leverage",
+                    "not modified", "110025", "110043",
                 ]):
                     raise
                 log.warning("Bybit emir hatası (deneme %d/%d): %s",
