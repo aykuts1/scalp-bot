@@ -1,17 +1,35 @@
 """
 🔴 KIRMIZI THREAD
 
-Yeni Açılış Mantığı (madde 4-5, 38):
-- Flag taraması: 15dk mum kapanışında Donchian yön değişimi ile.
-- İşlem açılışı 2 aşamalı:
-  A) Fiyat Donchian çizgisini cross ederse → giriş çizgisi olarak DONCHIAN ÇİZGİSİNİN
-     DEĞERİ kaydedilir (ham fiyat değil — direnç seviyesi mantığı). EMA bakılmaz.
-  B) Fiyat kaydedilen giriş çizgisini cross ederse + EMA filtresi tamam → işlem açılır.
-- İşlem açıldığında flag VE giriş çizgisi silinir.
+Açılış Mantığı (DEĞME bazlı):
 
-Hızlı tarama: 5 sn (madde 1).
+1) FLAG (15dk mum kapanışında)
+   - Bu kapanıştaki Donchian alt çizgisi > önceki kapanıştaki Donchian alt
+     çizgisi → SHORT FLAG açılır.
+   - Bu kapanıştaki Donchian üst çizgisi < önceki kapanıştaki Donchian üst
+     çizgisi → LONG FLAG açılır.
 
-Seviye ve çıkışlar: aynen kaldı (trail mantığı korundu).
+2) GİRİŞ ÇİZGİSİ KAYDI (5sn taramada, DEĞME)
+   - Fiyat Donchian çizgisini "cross" edemez (indikatör mantığına ters).
+     Onun yerine DEĞME kontrolü:
+       SHORT: prev > d_lower idi, curr <= d_lower oldu
+       LONG:  prev < d_upper idi, curr >= d_upper oldu
+   - Değme tespit edilince Donchian'ın O ANDAKI değeri "giriş çizgisi"
+     olarak kaydedilir.
+   - Önceden kaydedilmiş giriş çizgisi varsa üzerine yazılır (eski silinir).
+   - Flag açık kalır.
+
+3) İŞLEM AÇILIŞI (statik çizgi cross + EMA800)
+   - Kaydedilen giriş çizgisi artık SABİT bir sayıdır, cross mantıklı.
+   - SHORT: fiyat çizgiyi aşağı cross + fiyat < EMA800 → 🔴 SHORT açılır
+   - LONG:  fiyat çizgiyi yukarı cross + fiyat > EMA800 → 🔴 LONG açılır
+   - İşlem açılınca flag VE giriş çizgisi silinir.
+
+4) DEĞME ve CROSS aynı taramada üst üste binemez
+   - Değme tespit edildiği taramada cross kontrolü atlanır.
+   - Bir sonraki taramadan itibaren cross beklenir.
+
+Hızlı tarama: 5 sn.
 """
 import threading
 import time
@@ -153,41 +171,62 @@ class RedThread(threading.Thread):
         st = self.state[symbol]
 
         # ----- SHORT açılış akışı -----
+        # Fiyat Donchian çizgisini CROSS edemez (indikatör mantığına ters).
+        # Onun yerine DEĞME mantığı kullanılır:
+        #   1) Fiyat Donchian alt çizgisine değer → o anki Donchian değeri
+        #      "giriş çizgisi" olarak kaydedilir (eski kayıt varsa silinip
+        #      yenisi yazılır).
+        #   2) Kaydedilen statik çizgi (artık sabit bir sayı) cross edilirse
+        #      + EMA800 filtresi geçerse → işlem açılır.
         if st["short_flag"]:
-            # Aşama A: giriş çizgisi kaydı
-            # Donchian alt çizgisini aşağı cross → bu çizginin değeri giriş çizgisi
-            if st["short_entry_line"] is None:
-                if crossed_down(prev, curr, d_lower):
-                    # Direnç seviyesi mantığı: Donchian'ın O ANDAKI değeri kaydedilir
-                    st["short_entry_line"] = d_lower
-                    log.info(f"[{symbol}] SHORT giriş çizgisi kaydedildi: {d_lower}")
-            else:
-                # Aşama B: kaydedilmiş giriş çizgisini aşağı cross + EMA altında
-                entry_line = st["short_entry_line"]
-                # Daha düşük seviyede yeni bir Donchian değişimi olursa üzerine yazma
-                # mantığı yeni flag ile gelir (eskisi temizlenir).
-                # Burada üzerine yazma sadece eski çizginin ÜSTÜNDE oluşacak yeni
-                # değme ile olur — yani fiyat yukarı dönüp tekrar Donchian alt çizgiyi
-                # aşağı cross ederse ve YENİ değer eskisinden farklıysa güncellenir.
-                # (Donchian zaten 15dk'da bir değişir, fiyat hareketiyle değişmez.)
-
-                # Cross + EMA kontrolü
-                if crossed_down(prev, curr, entry_line):
-                    if curr < ema_val:
-                        self._open_red(symbol, "SHORT", curr, d_upper, d_lower)
-                    # EMA filtresine takıldı → işlem açılmaz, giriş çizgisi kalır
+            self._tick_short_open(symbol, st, prev, curr, d_lower, d_upper, ema_val)
 
         # ----- LONG açılış akışı (simetrik) -----
         if st["long_flag"]:
-            if st["long_entry_line"] is None:
-                if crossed_up(prev, curr, d_upper):
-                    st["long_entry_line"] = d_upper
-                    log.info(f"[{symbol}] LONG giriş çizgisi kaydedildi: {d_upper}")
-            else:
-                entry_line = st["long_entry_line"]
-                if crossed_up(prev, curr, entry_line):
-                    if curr > ema_val:
-                        self._open_red(symbol, "LONG", curr, d_upper, d_lower)
+            self._tick_long_open(symbol, st, prev, curr, d_upper, d_lower, ema_val)
+
+    def _tick_short_open(self, symbol, st, prev, curr, d_lower, d_upper, ema_val):
+        """
+        Kırmızı SHORT açılış mantığı, tek scan.
+        ADIM 1 → DEĞME tespiti (Donchian alt çizgisine).
+        ADIM 2 → Kaydedilen statik çizginin cross + EMA800 kontrolü.
+        """
+        # ADIM 1: DEĞME — fiyat Donchian alt çizgisine değdi mi?
+        # (prev > d_lower idi, curr <= d_lower oldu)
+        if crossed_down(prev, curr, d_lower):
+            # Donchian'ın O ANDAKI alt çizgisi giriş çizgisi olarak kaydedilir.
+            # Eski kayıt varsa üzerine yazılır (yeni cizgi kaydedilir, eski silinir).
+            st["short_entry_line"] = d_lower
+            log.info(f"[{symbol}] SHORT giriş çizgisi kaydedildi: {d_lower}")
+            # Aynı taramada cross kontrolüne geçme — değme cross sayılmaz.
+            # Cross için yeni bir tarama gerekir.
+            return
+
+        # ADIM 2: Kaydedilmiş çizgi cross edildi mi? + EMA800 altında mı?
+        if st["short_entry_line"] is not None:
+            entry_line = st["short_entry_line"]
+            if crossed_down(prev, curr, entry_line):
+                if curr < ema_val:
+                    self._open_red(symbol, "SHORT", curr, d_upper, d_lower)
+                # EMA filtresine takıldı → işlem açılmaz, giriş çizgisi kalır
+
+    def _tick_long_open(self, symbol, st, prev, curr, d_upper, d_lower, ema_val):
+        """
+        Kırmızı LONG açılış mantığı (SHORT'un simetriği).
+        """
+        # ADIM 1: DEĞME — fiyat Donchian üst çizgisine değdi mi?
+        # (prev < d_upper idi, curr >= d_upper oldu)
+        if crossed_up(prev, curr, d_upper):
+            st["long_entry_line"] = d_upper
+            log.info(f"[{symbol}] LONG giriş çizgisi kaydedildi: {d_upper}")
+            return
+
+        # ADIM 2: Kaydedilmiş çizgi cross edildi mi? + EMA800 üstünde mi?
+        if st["long_entry_line"] is not None:
+            entry_line = st["long_entry_line"]
+            if crossed_up(prev, curr, entry_line):
+                if curr > ema_val:
+                    self._open_red(symbol, "LONG", curr, d_upper, d_lower)
 
     def _calc_red_levels(self, side, entry_price, d_upper, d_lower):
         """
