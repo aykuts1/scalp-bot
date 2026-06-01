@@ -101,7 +101,7 @@ class DataManager:
                 if "not modified" not in err and "110026" not in err:
                     log.warning(f"Margin mode ayarlanamadı {symbol}: {e}")
 
-def _setup_leverage(self):
+    def _setup_leverage(self):
         """Tüm coinlere kaldıracı ayarla."""
         for symbol in self.cfg.symbols:
             try:
@@ -112,10 +112,11 @@ def _setup_leverage(self):
                     sellLeverage=str(self.cfg.leverage),
                 )
             except Exception as e:
+                # Genelde "leverage not modified" hatası verir, sorun değil
                 err = str(e).lower()
                 if "not modified" not in err and "110043" not in err:
                     log.warning(f"Leverage ayarlanamadı {symbol}: {e}")
-            time.sleep(0.1)   
+            time.sleep(0.1)
 
     # ------------------------------------------------------------------
     # BALANCE
